@@ -28,4 +28,8 @@ class MainStylesheet < ApplicationStylesheet
     st.view.barTintColor = color.white
     st.view.clipsToBounds = true
   end
+
+  def autocomplete_container(st)
+    st.frame = { l: 0, t: 50, w: app_width, h: 120 }
+  end
 end

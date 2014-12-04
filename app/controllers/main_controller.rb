@@ -1,5 +1,29 @@
 class MainController < UIViewController
 
+  def initWithNibName(name, bundle: bundle)
+    super
+    @auto_complete_mgr = MJAutoCompleteManager.new
+    @auto_complete_mgr.dataSource = self
+    @auto_complete_mgr.delegate = self
+
+    items = []
+    %w(john paul ringo george jonathan ほげ).each do |name|
+      item = MJAutoCompleteItem.new
+      item.autoCompleteString = name
+      items.push item
+    end
+
+    items.each do |item|
+      puts item.autoCompleteString
+    end
+
+    at_trigger = MJAutoCompleteTrigger.alloc.initWithDelimiter('@', autoCompleteItems: items)
+
+    @auto_complete_mgr.addAutoCompleteTrigger(at_trigger)
+
+    self
+  end
+
   def viewDidLoad
     super
     self.edgesForExtendedLayout = UIRectEdgeNone
@@ -11,6 +35,8 @@ class MainController < UIViewController
     @text_view = rmq.append(SZTextView, :text_area).get
     @text_view.delegate = self
     @text_view.inputAccessoryView = tool_bar
+
+    @auto_complete_mgr.container = rmq.append(UIView, :autocomplete_container).get
 
     rmq(@text_view).on(:swipe_up) { |sender| sender.resignFirstResponder }
     rmq(@text_view).on(:swipe_down) { |sender| sender.resignFirstResponder }
@@ -127,7 +153,6 @@ class MainController < UIViewController
     duration = info.objectForKey(UIKeyboardAnimationDurationUserInfoKey).doubleValue
 
     new_height = rmq.stylesheet.original_text_area_height - keyboard_rect.size.height - 10
-    puts new_height
 
     rmq(@text_view).animate(
       duration: duration,
@@ -151,10 +176,24 @@ class MainController < UIViewController
     )
   end
 
+  # --- UITextView Delegate methods
+  def textViewDidChange(text_view)
+    @auto_complete_mgr.processString(@text_view.text)
+  end
+
   # --- UIScrollViewDelegate
-  def scrollViewDidEndDragging(scrollView, willDecelerate: decelerate)
+  def scrollViewDidEndDragging(scroll_view, willDecelerate: decelerate)
     @text_view.resignFirstResponder
   end
 
+  # --- MJAutoCompleteMgr DataSource Methods
+  # def autoCompleteManager(manager, itemListForTrigger: trigger, withString: string, callback: callback)
+  # end
+
+  # --- MJAutoCompleteMgr Delegate methods
+  def autoCompleteManager(manager, shouldUpdateToText: new_text)
+    puts new_text
+    @text_view.text = new_text
+  end
 
 end
