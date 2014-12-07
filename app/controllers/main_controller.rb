@@ -13,10 +13,6 @@ class MainController < UIViewController
       items.push item
     end
 
-    items.each do |item|
-      puts item.autoCompleteString
-    end
-
     at_trigger = MJAutoCompleteTrigger.alloc.initWithDelimiter('@', autoCompleteItems: items)
 
     @auto_complete_mgr.addAutoCompleteTrigger(at_trigger)
@@ -187,8 +183,12 @@ class MainController < UIViewController
   end
 
   # --- MJAutoCompleteMgr DataSource Methods
-  # def autoCompleteManager(manager, itemListForTrigger: trigger, withString: string, callback: callback)
-  # end
+  def autoCompleteManager(manager, filterList: filtered_list, forTrigger: trigger, withString: string)
+    if string.present?
+      predicate = NSPredicate.predicateWithFormat("autoCompleteString beginswith[cd] %@", string)
+      filtered_list.filterUsingPredicate(predicate)
+    end
+  end
 
   # --- MJAutoCompleteMgr Delegate methods
   def autoCompleteManager(manager, shouldUpdateToText: new_text)
